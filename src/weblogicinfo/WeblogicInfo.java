@@ -36,10 +36,10 @@ public class WeblogicInfo {
         // Setup JMX
         MBeanContainer mbContainer = new MBeanContainer(ManagementFactory.getPlatformMBeanServer());
         server.addBean(mbContainer);
-
+               
         ServletHandler handler = new ServletHandler();
         server.setHandler(handler);
-        handler.addServletWithMapping(WebWLInfo.class, "/");
+        handler.addServletWithMapping(WebWLInfo.class, "/*");
         server.start();
         
         server.dumpStdErr();

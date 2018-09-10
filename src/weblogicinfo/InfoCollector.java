@@ -16,6 +16,8 @@
  */
 package weblogicinfo;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Set;
 import javax.management.remote.JMXServiceURL;
@@ -35,10 +37,15 @@ import static javax.naming.Context.SECURITY_CREDENTIALS;
 import static javax.naming.Context.SECURITY_PRINCIPAL;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class InfoCollector {
+public class InfoCollector extends Thread {
 
     MBeanServerConnection remote = null;
     JMXConnector connector = null;
@@ -61,9 +68,10 @@ public class InfoCollector {
     Map<String, String> mnm = new TreeMap();
     Map<String, String> mclst = new TreeMap();
     Map<String, String> elMap = new TreeMap();
+    PrintWriter threadOut;
     String md5hash;
 
-    public InfoCollector(String adminServerHost, int adminServerPort, String wlUser, String wlPassword) {
+    public InfoCollector(String adminServerHost, int adminServerPort, String wlUser, String wlPassword, PrintWriter out) {
         try {
             serviceURL = new JMXServiceURL(
                     "t3",
@@ -77,6 +85,7 @@ public class InfoCollector {
         }
         username = wlUser;
         password = wlPassword;
+        threadOut = out;
     }
 
     private void processWLHome() {
@@ -465,12 +474,15 @@ public class InfoCollector {
         }
     }
 
-    public Document runCollection() throws Exception {
+    @Override
+    public void run() {
         if (!initT3Connect() || !initOutXML()) {
-            return null;
+            return ;
         }
 
-        domainMBean = (ObjectName) remote.getAttribute(service, "DomainConfiguration");
+        try{
+            domainMBean = (ObjectName) remote.getAttribute(service, "DomainConfiguration");
+        }catch(Exception e){}
 
         processDomain();
         processWLVersion();
@@ -511,7 +523,18 @@ public class InfoCollector {
         }
         cleanup();
         addXMLSuccess();
-        return outDoc;
+        try{
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            StreamResult result = new StreamResult(new StringWriter());
+            DOMSource source = new DOMSource(outDoc);
+            transformer.transform(source, result);
+            String xmlString = result.getWriter().toString();
+            threadOut.println(xmlString);  
+        }catch(Exception e){
+            
+        }
     }
 
     private void cleanup() {

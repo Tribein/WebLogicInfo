@@ -18,7 +18,6 @@ package weblogicinfo;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import static java.lang.Integer.parseInt;
 import java.util.Map;
 import java.util.TreeMap;
@@ -27,12 +26,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import org.w3c.dom.Document;
 
 @WebServlet(name = "WebWLInfo", urlPatterns = {"/"})
 public class WebWLInfo extends HttpServlet {
@@ -46,46 +39,39 @@ public class WebWLInfo extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
+    /*
     String decodeCharset;
-
     public void init() throws ServletException {
         decodeCharset = "UTF8";
     }
-
+    */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        InfoCollector ci;
-        Map <String,String[] > parametersMap = new TreeMap<>();
-        
+        Map<String, String[]> parametersMap = new TreeMap<>();
+
         response.setContentType("text/html;charset=UTF-8");
-        
+
         PrintWriter out = response.getWriter();
-        
+
         parametersMap = request.getParameterMap();
-        
-        if (    ! parametersMap.containsKey("adminhost") ||
-                ! parametersMap.containsKey("adminport") ||
-                ! parametersMap.containsKey("username")  ||
-                ! parametersMap.containsKey("password")     ){
+
+        if (!parametersMap.containsKey("adminhost")
+                || !parametersMap.containsKey("adminport")
+                || !parametersMap.containsKey("username")
+                || !parametersMap.containsKey("password")) {
             out.println("Requiered: adminhost,adminport,username,password");
             return;
         }
-        ci = new InfoCollector(
+        Thread collectThread = new InfoCollector(
                 request.getParameter("adminhost"),
                 parseInt(request.getParameter("adminport")),
                 request.getParameter("username"),
-                request.getParameter("password") 
+                request.getParameter("password"),
+                out
         );
+        collectThread.start();
         try{
-            Document output = ci.runCollection();
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-            StreamResult result = new StreamResult(new StringWriter());
-            DOMSource source = new DOMSource(output);
-            transformer.transform(source, result);
-            String xmlString = result.getWriter().toString();
-            out.println(xmlString);        
+            collectThread.join();
         }catch(Exception e){
             e.printStackTrace();
         }

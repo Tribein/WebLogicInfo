@@ -29,7 +29,11 @@ public class WeblogicInfo {
     public static void main(String[] args) throws Exception{
 
         System.setProperty("org.eclipse.jetty.util.log.class", "org.eclipse.jetty.util.log.StdErrLog");
-        System.setProperty("org.eclipse.jetty.LEVEL", "OFF");        
+        System.setProperty("org.eclipse.jetty.LEVEL", "OFF");  
+        System.setProperty("weblogic.ThreadPoolSize","100");
+        System.setProperty("weblogic.MaxMessageSize", "300000000"); 
+        //System.setProperty("weblogic.MaxOpenSockCount", "1024"); 
+        System.setProperty("weblogic.ThreadPoolPercentSocketReaders", "100");         
         
         Server server = new Server(80);
 

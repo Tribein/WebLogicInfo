@@ -71,10 +71,10 @@ public class InfoCollector extends Thread {
     PrintWriter threadOut;
     String md5hash;
 
-    public InfoCollector(String adminServerHost, int adminServerPort, String wlUser, String wlPassword, PrintWriter out) {
+    public InfoCollector(String adminServerHost, int adminServerPort, String wlUser, String wlPassword, boolean useSSL, PrintWriter out) {
         try {
             serviceURL = new JMXServiceURL(
-                    "t3",
+                    (useSSL ? "t3s" : "t3"),
                     adminServerHost,
                     adminServerPort,
                     "/jndi/" + "weblogic.management.mbeanservers.domainruntime"
@@ -282,7 +282,7 @@ public class InfoCollector extends Thread {
             for (ObjectName targetName : targetNames) {
                 String serverName = targetName.getKeyProperty("Name");
                 md5hash = new String(md.digest((dsName + " " + jndi + " " + url + " " + username + " " + serverName).getBytes()), "UTF-8");
-                if (!mds.containsKey(md5hash)) {
+                if (!mds.containsKey(md5hash)  && (url !=null && !url.isEmpty()) && (username != null && !username.isEmpty() )  ) {
                     elMap.clear();
                     elMap.put("USERNAME", username);
                     elMap.put("DSNAME", dsName);

@@ -67,6 +67,7 @@ public class WebWLInfo extends HttpServlet {
                 parseInt(request.getParameter("adminport")),
                 request.getParameter("username"),
                 request.getParameter("password"),
+                (parametersMap.containsKey("ssl") ? ((request.getParameter("ssl").equals("Y"))? true : false) : false ),
                 out
         );
         collectThread.start();

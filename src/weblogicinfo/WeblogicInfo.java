@@ -30,7 +30,7 @@ public class WeblogicInfo {
 
         System.setProperty("org.eclipse.jetty.util.log.class", "org.eclipse.jetty.util.log.StdErrLog");
         System.setProperty("org.eclipse.jetty.LEVEL", "OFF");  
-        System.setProperty("weblogic.ThreadPoolSize","100");
+        System.setProperty("weblogic.ThreadPoolSize","200");
         System.setProperty("weblogic.MaxMessageSize", "300000000"); 
         //System.setProperty("weblogic.MaxOpenSockCount", "1024"); 
         System.setProperty("weblogic.ThreadPoolPercentSocketReaders", "100");         
